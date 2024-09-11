@@ -1,6 +1,10 @@
-name: BuildWorkflow
+name: CI
 
-on: [workflow_dispatch]
+on: 
+  - workflow_dispatch
+  - push:
+      branches:
+        - main
 
 concurrency:
   group: release_workflow
@@ -37,7 +41,12 @@ jobs:
           FDROID_KEY_PASS: ${{ secrets.FDROID_KEY_PASS }}
           PLAYSTORE_DEPLOY_KEY: ${{ secrets.PLAYSTORE_DEPLOY_KEY }}
         run: ./scripts/prepare-android-release.sh
-      - run: flutter build apk --release
+      - run: | 
+          # 获取当前提交的哈希值
+          COMMIT_HASH=${GITHUB_SHA::8}  # 截取前8位作为版本号的一部分
+          # 定义版本号格式，例如 v1.0.$COMMIT_HASH
+          BUILD_NAME="debug-$COMMIT_HASH"
+          flutter build apk --release --build-name=$BUILD_NAME
       # - name: Upload to release
       #   uses: actions/upload-release-asset@v1
       #   env:
