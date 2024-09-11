@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -32,28 +34,43 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
   String? _networkUri;
   File? _tmpFile;
 
-  void _downloadAction() async {
+  Future<File> cacheGet() async {
+    final tempDir = await getExternalStorageDirectory();
+    final fileName = Uri.encodeComponent(
+      widget.event.attachmentOrThumbnailMxcUrl()!.pathSegments.last,
+    );
+    final ext = widget.event.content['mimetype'] ?? "";
+    final cacheFile = File('${tempDir!.path}/$fileName.$ext');
+    if (await cacheFile.exists() == false) {
+      final videoFile = await widget.event.downloadAndDecryptAttachment();
+      await cacheFile.writeAsBytes(videoFile.bytes);
+    }
+    return cacheFile;
+  }
+
+  void _downloadAction(bool play) async {
     if (PlatformInfos.isDesktop) {
       widget.event.saveFile(context);
       return;
     }
     setState(() => _isDownloading = true);
     try {
-      final videoFile = await widget.event.downloadAndDecryptAttachment();
       if (kIsWeb) {
+        final videoFile = await widget.event.downloadAndDecryptAttachment();
         final blob = html.Blob([videoFile.bytes]);
         _networkUri = html.Url.createObjectUrlFromBlob(blob);
       } else {
-        final tempDir = await getTemporaryDirectory();
-        final fileName = Uri.encodeComponent(
-          widget.event.attachmentOrThumbnailMxcUrl()!.pathSegments.last,
-        );
-        final file = File('${tempDir.path}/${fileName}_${videoFile.name}');
-        if (await file.exists() == false) {
-          await file.writeAsBytes(videoFile.bytes);
-        }
-        _tmpFile = file;
+        // final tempDir = await getTemporaryDirectory();
+        // final fileName = Uri.encodeComponent(
+        //   widget.event.attachmentOrThumbnailMxcUrl()!.pathSegments.last,
+        // );
+        // final file = File('${tempDir.path}/${fileName}_${videoFile.name}');
+        // if (await file.exists() == false) {
+        //   await file.writeAsBytes(videoFile.bytes);
+        // }
+        _tmpFile = await cacheGet();
       }
+      if (play == false) return;
       final tmpFile = _tmpFile;
       final networkUri = _networkUri;
       if (kIsWeb && networkUri != null && _chewieManager == null) {
@@ -86,16 +103,37 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
     }
   }
 
+  Timer? timer;
   @override
   void dispose() {
     _chewieManager?.dispose();
     super.dispose();
   }
 
+  bool first = true;
+  @override
+  void initState() {
+    super.initState();
+  }
+
   static const String fallbackBlurHash = 'L5H2EC=PM+yV0g-mq.wG9c010J}I';
 
   @override
   Widget build(BuildContext context) {
+    if (first) {
+      first = false;
+      print(widget.event.attachmentOrThumbnailMxcUrl());
+      print(widget.event.content.entries);
+      Future(() {
+        if (!PlatformInfos.isDesktop) {
+          try {
+            _downloadAction(false);
+          } catch (e, s) {
+            print("${e},$s");
+          }
+        }
+      });
+    }
     final theme = Theme.of(context);
 
     final hasThumbnail = widget.event.hasThumbnail;
@@ -141,7 +179,11 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
                           : L10n.of(context)!.videoWithSize(
                               widget.event.sizeString ?? '?MB',
                             ),
-                      onPressed: _isDownloading ? null : _downloadAction,
+                      onPressed: _isDownloading
+                          ? null
+                          : () {
+                              _downloadAction(true);
+                            },
                     ),
                   ),
                 ],
