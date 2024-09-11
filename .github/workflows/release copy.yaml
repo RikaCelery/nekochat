@@ -1,7 +1,6 @@
 name: BuildWorkflow
 
-on:
-  - workflow-dispatch
+on: [workflow_dispatch]
 
 concurrency:
   group: release_workflow
