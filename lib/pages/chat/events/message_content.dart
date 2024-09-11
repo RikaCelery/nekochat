@@ -136,6 +136,7 @@ class MessageContent extends StatelessWidget {
               width: width,
               height: height,
               fit: fit,
+              thumbnailOnly: false,
               borderRadius: borderRadius,
             );
           case CuteEventContent.eventType:

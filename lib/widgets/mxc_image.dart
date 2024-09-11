@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:fluffychat/utils/file_cache.dart';
 import 'package:flutter/material.dart';
 
 import 'package:matrix/matrix.dart';
@@ -64,6 +65,8 @@ class _MxcImageState extends State<MxcImage> {
   }
 
   Future<void> _load() async {
+    print(
+        "msc image load isThumbnail:${widget.isThumbnail} uri:${widget.uri} cacheKey:${widget.cacheKey}");
     final client = widget.client ?? Matrix.of(context).client;
     final uri = widget.uri;
     final event = widget.event;
@@ -90,16 +93,28 @@ class _MxcImageState extends State<MxcImage> {
     }
 
     if (event != null) {
-      final data = await event.downloadAndDecryptAttachment(
-        getThumbnail: widget.isThumbnail,
-      );
-      if (data.detectFileType is MatrixImageFile) {
-        if (!mounted) return;
-        setState(() {
-          _imageData = data.bytes;
-        });
-        return;
-      }
+      final data = await cacheImage(
+          Uri.encodeComponent(
+              (await event.getAttachmentUri(getThumbnail: widget.isThumbnail))
+                  .toString()
+                  .split('/')
+                  .last),
+          widget.isThumbnail
+              ? "thumb"
+              : "ori",event.attachmentMimetype.split('/').last, () async {
+        final img = await event.downloadAndDecryptAttachment(
+          getThumbnail: widget.isThumbnail,
+        );
+        if (img.detectFileType is MatrixImageFile) {
+          return img.bytes;
+        }
+        throw Exception("not image");
+      });
+      if (!mounted) return;
+      setState(() {
+        _imageData = data;
+      });
+      return;
     }
   }
 

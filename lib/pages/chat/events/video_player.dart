@@ -35,30 +35,30 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
   File? _tmpFile;
 
   Future<File> cacheGet() async {
-    if (PlatformInfos.isDesktop) {
-      final tempDir = await getDownloadsDirectory();
-      final fileName = Uri.encodeComponent(
-        widget.event.attachmentOrThumbnailMxcUrl()!.pathSegments.last,
-      );
-      final ext = widget.event.content['mimetype'] ?? "";
-      final cacheFile = File('${tempDir!.path}/$fileName.$ext');
-      if (await cacheFile.exists() == false) {
-        final videoFile = await widget.event.downloadAndDecryptAttachment();
-        await cacheFile.writeAsBytes(videoFile.bytes);
-      }
-      return cacheFile;
-    }
-    final tempDir = await getDownloadsDirectory();
+    File? cacheFile = null;
     final fileName = Uri.encodeComponent(
       widget.event.attachmentOrThumbnailMxcUrl()!.pathSegments.last,
     );
-    final ext = widget.event.content['mimetype'] ?? "";
-    final cacheFile = File('${tempDir!.path}/$fileName.$ext');
-    print("tmp file ${cacheFile.absolute.path}");
+    final ext = ((widget.event.content['info']
+                as Map<String, Object?>)['mimetype'] as String? ??
+            "")
+        .split("/")
+        .last;
+    if (!kIsWeb && !PlatformInfos.isIOS) {
+      final tempDir = await getDownloadsDirectory();
+      cacheFile = File('${tempDir!.path}/$fileName.$ext');
+    } else {
+      final tempDir = await getApplicationCacheDirectory();
+      cacheFile = File('${tempDir.path}/$fileName.$ext');
+    }
     if (await cacheFile.exists() == false) {
-      print("tmp file not exist, download video");
+      print(
+          "tmp file(${cacheFile.absolute.path}) not exist, download video ${widget.event.attachmentOrThumbnailMxcUrl()}");
+      print("video content: " + widget.event.content.entries.toString());
       final videoFile = await widget.event.downloadAndDecryptAttachment();
       await cacheFile.writeAsBytes(videoFile.bytes);
+    } else {
+      print("tmp file ${cacheFile.absolute.path}");
     }
     return cacheFile;
   }
@@ -70,8 +70,6 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
     // }
     setState(() => _isDownloading = true);
     try {
-      print("try download ${widget.event.attachmentOrThumbnailMxcUrl()}");
-      print(widget.event.content.entries);
       if (kIsWeb) {
         final videoFile = await widget.event.downloadAndDecryptAttachment();
         final blob = html.Blob([videoFile.bytes]);
