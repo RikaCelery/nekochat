@@ -26,7 +26,7 @@ class ImageBubble extends StatelessWidget {
     this.maxSize = true,
     this.backgroundColor,
     this.fit = BoxFit.contain,
-    this.thumbnailOnly = false,
+    this.thumbnailOnly = true,
     this.width = 400,
     this.height = 300,
     this.animated = false,
