@@ -9,7 +9,7 @@ on:
 
 concurrency:
   group: release_workflow
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   REGISTRY: ghcr.io
@@ -43,9 +43,8 @@ jobs:
           PLAYSTORE_DEPLOY_KEY: ${{ secrets.PLAYSTORE_DEPLOY_KEY }}
         run: ./scripts/prepare-android-release.sh
       - run: | 
-          # 获取当前提交的哈希值
-          COMMIT_HASH=${GITHUB_SHA::8}  # 截取前8位作为版本号的一部分
-          # 定义版本号格式，例如 v1.0.$COMMIT_HASH
+          # build apk
+          COMMIT_HASH=${GITHUB_SHA::8} 
           BUILD_NAME="debug-$COMMIT_HASH"
           flutter build apk --release --build-name=$BUILD_NAME
       # - name: Upload to release
