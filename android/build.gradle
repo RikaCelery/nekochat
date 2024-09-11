@@ -7,6 +7,20 @@ allprojects {
 
 rootProject.buildDir = '../build'
 subprojects {
+    afterEvaluate {
+        android { compileSdkVersion 34 }
+        project.getTasks().withType(JavaCompile) {
+            if (options.compilerArgs.removeIf(v -> {
+                v == "-Werror"
+            })) {
+                println("ignore warning "+project.name)
+            }
+
+        }
+    }
+}
+// also needs to disable com.baseflow.geolocator -Werror
+subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 subprojects {
