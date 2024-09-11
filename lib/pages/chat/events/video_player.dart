@@ -48,7 +48,7 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
       }
       return cacheFile;
     }
-    final tempDir = await getExternalStorageDirectory();
+    final tempDir = await getDownloadsDirectory();
     final fileName = Uri.encodeComponent(
       widget.event.attachmentOrThumbnailMxcUrl()!.pathSegments.last,
     );
@@ -138,12 +138,10 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
       print(widget.event.attachmentOrThumbnailMxcUrl());
       print(widget.event.content.entries);
       Future(() {
-        if (!PlatformInfos.isDesktop) {
-          try {
-            _downloadAction(false);
-          } catch (e, s) {
-            print("${e},$s");
-          }
+        try {
+          _downloadAction(false);
+        } catch (e, s) {
+          print("${e},$s");
         }
       });
     }
