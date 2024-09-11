@@ -35,6 +35,19 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
   File? _tmpFile;
 
   Future<File> cacheGet() async {
+    if (PlatformInfos.isDesktop) {
+      final tempDir = await get();
+      final fileName = Uri.encodeComponent(
+        widget.event.attachmentOrThumbnailMxcUrl()!.pathSegments.last,
+      );
+      final ext = widget.event.content['mimetype'] ?? "";
+      final cacheFile = File('${tempDir!.path}/$fileName.$ext');
+      if (await cacheFile.exists() == false) {
+        final videoFile = await widget.event.downloadAndDecryptAttachment();
+        await cacheFile.writeAsBytes(videoFile.bytes);
+      }
+      return cacheFile;
+    }
     final tempDir = await getExternalStorageDirectory();
     final fileName = Uri.encodeComponent(
       widget.event.attachmentOrThumbnailMxcUrl()!.pathSegments.last,
@@ -49,10 +62,10 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
   }
 
   void _downloadAction(bool play) async {
-    if (PlatformInfos.isDesktop) {
-      widget.event.saveFile(context);
-      return;
-    }
+    // if (PlatformInfos.isDesktop) {
+    //   widget.event.saveFile(context);
+    //   return;
+    // }
     setState(() => _isDownloading = true);
     try {
       if (kIsWeb) {
