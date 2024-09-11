@@ -36,7 +36,7 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
 
   Future<File> cacheGet() async {
     if (PlatformInfos.isDesktop) {
-      final tempDir = await get();
+      final tempDir = await getDownloadsDirectory();
       final fileName = Uri.encodeComponent(
         widget.event.attachmentOrThumbnailMxcUrl()!.pathSegments.last,
       );
