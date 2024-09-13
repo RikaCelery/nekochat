@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fluffychat/pages/settings_storage/settings_storage.dart';
 import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
@@ -300,6 +301,15 @@ abstract class AppRoutes {
                         ),
                       ],
                     ),
+                    GoRoute(
+                      path: 'storage',
+                      redirect: loggedOutRedirect,
+                      pageBuilder: (context, state) => defaultPageBuilder(
+                        context,
+                        state,
+                        const SettingsStorage(),
+                      ),
+                    )
                   ],
                   redirect: loggedOutRedirect,
                 ),

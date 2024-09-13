@@ -43,6 +43,7 @@ abstract class AppConfig {
     path: '/krille-chan/fluffychat/issues/new',
   );
   static bool renderHtml = true;
+  static bool cacheOnFly = true;
   static bool hideRedactedEvents = false;
   static bool hideUnknownEvents = true;
   static bool hideUnimportantStateEvents = true;

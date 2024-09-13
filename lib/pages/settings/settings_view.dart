@@ -143,6 +143,11 @@ class SettingsView extends StatelessWidget {
               onTap: () => context.go('/rooms/settings/notifications'),
             ),
             ListTile(
+              leading: const Icon(Icons.notifications_outlined),
+              title: Text(L10n.of(context)!.notifications),
+              onTap: () => context.go('/rooms/settings/storage'),
+            ),
+            ListTile(
               leading: const Icon(Icons.devices_outlined),
               title: Text(L10n.of(context)!.devices),
               onTap: () => context.go('/rooms/settings/devices'),

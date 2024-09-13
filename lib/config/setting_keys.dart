@@ -1,5 +1,6 @@
 abstract class SettingKeys {
   static const String renderHtml = 'chat.fluffy.renderHtml';
+  static const String cacheOnFly = 'chat.fluffy.cacheOnFly';
   static const String hideRedactedEvents = 'chat.fluffy.hideRedactedEvents';
   static const String hideUnknownEvents = 'chat.fluffy.hideUnknownEvents';
   static const String hideUnimportantStateEvents =
