@@ -65,9 +65,9 @@ class _MxcImageState extends State<MxcImage> {
   }
 
   Future<void> _load() async {
-    print(
-        "msc image load isThumbnail:${widget.isThumbnail} uri:${widget.uri} cacheKey:${widget.cacheKey}");
-    final client = widget.client ?? Matrix.of(context).client;
+    print("msc image load isThumbnail:${widget.isThumbnail} uri:${widget.uri} cacheKey:${widget.cacheKey}");
+    final client =
+        widget.client ?? widget.event?.room.client ?? Matrix.of(context).client;
     final uri = widget.uri;
     final event = widget.event;
 
